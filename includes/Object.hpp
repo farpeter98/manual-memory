@@ -11,7 +11,7 @@
 #include "MemoryManager.h"
 
 
-namespace GarbageCollector {
+namespace ManualMemory {
 
 template<typename T>
 class Object : public ObjectBase {
@@ -120,7 +120,7 @@ private:
     }
 };
 
-} // namespace GarbageCollector
+} // namespace ManualMemory
 
 
 #endif // OBJECT_HPP

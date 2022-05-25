@@ -6,7 +6,7 @@
 #include "MemoryManager.h"
 #include "Object.hpp"
 
-using namespace GarbageCollector;
+using namespace ManualMemory;
 
 struct MyStruct_1B {
     MyStruct_1B () : x (1) {}

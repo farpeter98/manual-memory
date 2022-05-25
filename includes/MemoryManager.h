@@ -8,7 +8,7 @@
 #include "ObjectBase.h"
 
 
-namespace GarbageCollector {
+namespace ManualMemory {
 
 class MemoryManager {
 public:
@@ -37,7 +37,7 @@ private:
     std::list<ObjectDescriptor>     m_descriptors;
 };
 
-} // namespace GarbageCollector
+} // namespace ManualMemory
 
 
 #endif // MEMORYMANAGER_H

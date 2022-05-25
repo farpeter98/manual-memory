@@ -4,7 +4,7 @@
 #include <cstdint>
 
 
-namespace GarbageCollector {
+namespace ManualMemory {
 
 class ObjectBase {
     friend class MemoryManager;
@@ -16,7 +16,7 @@ protected:
 
 };
 
-} // namespace GarbageCollector
+} // namespace ManualMemory
 
 
 #endif // OBJECTBASE_H

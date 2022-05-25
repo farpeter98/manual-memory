@@ -4,7 +4,7 @@
 #include <new>
 #include <iostream>
 
-using namespace GarbageCollector;
+using namespace ManualMemory;
 
 
 MemoryManager::MemoryManager ()

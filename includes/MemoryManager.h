@@ -12,7 +12,6 @@ namespace ManualMemory {
 
 class MemoryManager {
 public:
-    MemoryManager   ();
     ~MemoryManager  ();
 
     static MemoryManager&   GetInstance ();
@@ -24,7 +23,9 @@ public:
     void                    PrintMemory         () const;
 
 private:
-    void FreeAndCompact ();
+    MemoryManager (std::size_t memSize);
+
+    std::uint8_t* FreeAndCompact ();
 
     struct ObjectDescriptor {
         std::uint8_t*           startAddress;

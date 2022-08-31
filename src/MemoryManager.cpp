@@ -7,9 +7,9 @@
 using namespace ManualMemory;
 
 
-MemoryManager::MemoryManager ()
+MemoryManager::MemoryManager (std::size_t memSize)
 {
-    m_memory = (std::uint8_t*) malloc (sizeof(std::uint8_t) * MEMORY_SIZE);
+    m_memory = (std::uint8_t*) malloc (sizeof(std::uint8_t) * memSize);
     if (m_memory == nullptr)
         throw std::bad_alloc ();
 }
@@ -23,7 +23,7 @@ MemoryManager::~MemoryManager ()
 
 MemoryManager& MemoryManager::GetInstance ()
 {
-    static MemoryManager manager;
+    static MemoryManager manager { MEMORY_SIZE };
     return manager;
 }
 
@@ -33,47 +33,34 @@ std::uint8_t** MemoryManager::Allocate (std::size_t size)
     // the object has greater size than the total memory
     if (size > MEMORY_SIZE)
         throw std::bad_alloc ();
-    
+
     // check if any dead memory could store the data
+    std::uint8_t* startAddress = m_memory;
     for (ObjectDescriptor& descriptor : m_descriptors) {
         if (descriptor.size >= size && !descriptor.isLive) {
             descriptor.size = size;
             descriptor.isLive = true;
             return &descriptor.startAddress;
         }
-    }
-
-    // check if there's enough storage at the end of the memory
-    std::uint8_t* startAddress = m_memory;
-    if (!m_descriptors.empty ()) {
-
-        const ObjectDescriptor& descriptor = m_descriptors.back ();
         startAddress = descriptor.startAddress + descriptor.size;
     }
 
-    // there's enough storage at the end
+    // check if there's enough storage at the end
     if (startAddress + size <= m_memory + MEMORY_SIZE) {
         m_descriptors.push_back ({ startAddress, size, true });
         return &(m_descriptors.back ().startAddress);
 
     }
-    
+
     // check if the data can be stored at the end after freeing and compacting over the dead storage
-    FreeAndCompact ();
-    // there are still descriptors left
-    if (!m_descriptors.empty ()) {
-        const ObjectDescriptor& descriptor = m_descriptors.back ();
-        startAddress = descriptor.startAddress + descriptor.size;
-        if (startAddress + size <= m_memory + MEMORY_SIZE) {
-            m_descriptors.push_back ({ startAddress, size, true });
-            return &(m_descriptors.back ().startAddress);
-        }
-        // there isn't enough storage at the end even after compacting
-        throw std::bad_alloc ();
+    startAddress = FreeAndCompact ();
+	if (startAddress + size <= m_memory + MEMORY_SIZE) {
+        m_descriptors.push_back ({ startAddress, size, true });
+        return &(m_descriptors.back ().startAddress);
     }
-    // memory got totally cleaned
-    m_descriptors.push_back ({ m_memory, size, true });
-    return &(m_descriptors.back ().startAddress);
+
+    // there isn't enough storage at the end even after compacting
+    throw std::bad_alloc ();
 }
 
 
@@ -90,11 +77,11 @@ void MemoryManager::Deallocate (std::uint8_t** startAddressPtr)
 }
 
 
-void MemoryManager::FreeAndCompact ()
+std::uint8_t* MemoryManager::FreeAndCompact ()
 {
     std::uint8_t* currDest = m_memory;
     bool hasDead = false;
-    std::list<ObjectDescriptor>::iterator it = m_descriptors.begin ();
+    decltype (m_descriptors)::iterator it = m_descriptors.begin ();
     while (it != m_descriptors.end ()) {
         if (it->isLive && hasDead) {
             memcpy (currDest, it->startAddress, it->size);
@@ -107,6 +94,7 @@ void MemoryManager::FreeAndCompact ()
             it = m_descriptors.erase (it);
         }
     }
+    return currDest;
 
 }
 
